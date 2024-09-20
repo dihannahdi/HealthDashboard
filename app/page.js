@@ -1,4 +1,4 @@
-'use client'; // Untuk mendukung rendering di sisi client
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { motion } from 'framer-motion'; // Library animasi
 
 const Dashboard = () => {
   const [weight, setWeight] = useState('');
@@ -71,16 +70,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-blue-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6">
-        <motion.h1
-          className="text-3xl font-bold mb-6 text-center text-blue-700"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          Health Dashboard
-        </motion.h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-orange-700">Health Dashboard</h1>
         
         <Tabs defaultValue="calculator" className="w-full">
           <TabsList className="w-full justify-center mb-4">
@@ -90,57 +82,152 @@ const Dashboard = () => {
           </TabsList>
           
           <TabsContent value="calculator">
-            <Card className="border-blue-200">
-              <CardHeader className="bg-blue-100">
-                <CardTitle className="text-blue-800">Kalkulator Kesehatan</CardTitle>
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Kalkulator Kesehatan</CardTitle>
                 <CardDescription>Hitung IMT, BMR, dan kebutuhan kalori harian Anda</CardDescription>
               </CardHeader>
               <CardContent className="mt-4">
-                <motion.div className="grid gap-4"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {/* Form Inputs */}
-                  ...
-                </motion.div>
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="weight" className="text-orange-700">Berat Badan (kg)</Label>
+                      <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="border-orange-200" />
+                    </div>
+                    <div>
+                      <Label htmlFor="height" className="text-orange-700">Tinggi Badan (cm)</Label>
+                      <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="border-orange-200" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="age" className="text-orange-700">Usia</Label>
+                      <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className="border-orange-200" />
+                    </div>
+                    <div>
+                      <Label htmlFor="gender" className="text-orange-700">Jenis Kelamin</Label>
+                      <Select value={gender} onValueChange={setGender}>
+                        <SelectTrigger id="gender" className="border-orange-200">
+                          <SelectValue placeholder="Pilih jenis kelamin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pria">Pria</SelectItem>
+                          <SelectItem value="wanita">Wanita</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="activity" className="text-orange-700">Tingkat Aktivitas</Label>
+                    <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <SelectTrigger id="activity" className="border-orange-200">
+                        <SelectValue placeholder="Pilih tingkat aktivitas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1.2">Hampir tidak pernah berolahraga</SelectItem>
+                        <SelectItem value="1.3">Jarang berolahraga</SelectItem>
+                        <SelectItem value="1.4">Sering berolahraga</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardContent>
               <CardFooter className="justify-center">
-                <Button onClick={() => { calculateBMI(); calculateBMR(); calculateWaterIntake(); }} className="bg-blue-500 hover:bg-blue-600">Hitung</Button>
+                <Button onClick={() => { calculateBMI(); calculateBMR(); calculateWaterIntake(); }} className="bg-orange-500 hover:bg-orange-600">Hitung</Button>
               </CardFooter>
             </Card>
             
             {bmi && bmr && dailyCalories && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8 }}
-              >
-                <Card className="mt-4 border-blue-200">
-                  <CardHeader className="bg-blue-100">
-                    <CardTitle className="text-blue-800">Hasil</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-blue-700">IMT: {bmi} ({getBMICategory()})</p>
-                    <p className="text-blue-700">BMR: {bmr} kkal</p>
-                    <p className="text-blue-700">Kebutuhan Kalori Harian: {dailyCalories} kkal</p>
-                    <p className="text-blue-700">Asupan Air Harian: {waterIntake} ml</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              <Card className="mt-4 border-orange-200">
+                <CardHeader className="bg-orange-100">
+                  <CardTitle className="text-orange-800">Hasil</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-orange-700">IMT: {bmi} ({getBMICategory()})</p>
+                  <p className="text-orange-700">BMR: {bmr} kkal</p>
+                  <p className="text-orange-700">Kebutuhan Kalori Harian: {dailyCalories} kkal</p>
+                  <p className="text-orange-700">Asupan Air Harian: {waterIntake} ml</p>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
           
           <TabsContent value="nutrition">
-            {/* Konten Nutrisi */}
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Panduan Nutrisi Harian</CardTitle>
+                <CardDescription>Berdasarkan kebutuhan kalori harian Anda</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dailyCalories ? (
+                  <div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={nutrientData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="amount" stroke="#f97316" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <ul className="list-disc pl-5 mt-4 text-orange-700">
+                      {nutrientData.map((nutrient, index) => (
+                        <li key={index}>
+                          {nutrient.name}: {nutrient.amount} {nutrient.unit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-orange-700">Silakan hitung kebutuhan kalori harian Anda terlebih dahulu.</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="education">
-            {/* Konten Edukasi */}
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Gagal Ginjal pada Anak</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pengertian</h3>
+                <p className="text-orange-600">Gagal ginjal adalah kondisi di mana ginjal tidak mampu lagi menjalankan fungsinya untuk menyaring limbah dan kelebihan cairan dari darah. Pada anak-anak, kondisi ini bisa bersifat akut (tiba-tiba) atau kronis (jangka panjang).</p>
+                
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Gejala</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Tekanan darah tinggi</li>
+                  <li>Kehilangan berat badan atau pertumbuhan yang melambat</li>
+                  <li>Oedema (pembengkakan) terutama pada mata, kaki, atau pergelangan kaki</li>
+                  <li>Kelelahan atau lesu</li>
+                  <li>Mual dan muntah</li>
+                  <li>Sering buang air kecil atau kurang buang air kecil</li>
+                  <li>Urin berdarah atau berbusa</li>
+                </ul>
+                
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pencegahan</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Pengelolaan penyakit dasar: Seperti diabetes atau hipertensi</li>
+                  <li>Hindari penggunaan obat-obatan tanpa pengawasan dokter</li>
+                  <li>Konsumsi air yang cukup</li>
+                  <li>Pengawasan rutin terhadap kesehatan ginjal, terutama jika memiliki riwayat keluarga dengan penyakit ginjal</li>
+                </ul>
+                
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Komplikasi</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Kerusakan jantung atau pembuluh darah</li>
+                  <li>Anemia</li>
+                  <li>Kerusakan tulang atau gangguan mineral</li>
+                  <li>Gangguan elektrolit, seperti hiperkalemia</li>
+                  <li>Kematian mendadak</li>
+                </ul>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
-      <footer className="mt-8 text-blue-700 text-center">
+      <footer className="mt-8 text-orange-700 text-center">
         &copy; 2024 Atania Ilma. Hak cipta dilindungi undang-undang.
       </footer>
     </div>
