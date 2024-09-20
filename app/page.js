@@ -72,7 +72,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6">
-        <h1 className="text-3xl font-bold mb-6 text-center text-orange-700">Dashboard Kesehatan</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-orange-700">Health Dashboard</h1>
         
         <Tabs defaultValue="calculator" className="w-full">
           <TabsList className="w-full justify-center mb-4">
