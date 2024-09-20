@@ -108,3 +108,26 @@ body {
   opacity: 0;
   transition: opacity 500ms;
 }
+
+.tabs-content {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.tabs-content.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tabs-content.inactive {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.card {
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+}
