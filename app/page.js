@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 // Utility functions
-const calculateBMI = (weight, height): number => {
+const calculateBMI = (weight, height) => {
   return weight / (height * height);
 };
 
-const getBMICategory = (bmi): string => {
+const getBMICategory = (bmi) => {
   if (bmi < 17.0) return 'Severe underweight';
   if (bmi < 18.5) return 'Mild underweight';
   if (bmi <= 25.0) return 'Normal';
@@ -18,11 +18,11 @@ const getBMICategory = (bmi): string => {
   return 'Severe overweight';
 };
 
-const calculateWaterIntake = (weight: number): number => {
+const calculateWaterIntake = (weight) => {
   return weight * 0.033; // Simplified calculation
 };
 
-const calculateBMR = (weight: number, height: number, age: number, gender: string): number => {
+const calculateBMR = (weight, height, age, gender) => {
   if (gender === 'male') {
     return 66.5 + (13.7 * weight) + (5 * height * 100) - (6.8 * age);
   } else {
@@ -69,7 +69,7 @@ const Footer = () => {
 const BMICalculator = () => {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
-  const [bmi, setBMI] = useState<number | null>(null);
+  const [bmi, setBMI] = useState(null);
 
   const handleCalculate = () => {
     const calculatedBMI = calculateBMI(parseFloat(weight), parseFloat(height));
@@ -116,7 +116,7 @@ const BMICalculator = () => {
 // Water Intake Calculator Component
 const WaterIntakeCalculator = () => {
   const [weight, setWeight] = useState('');
-  const [waterIntake, setWaterIntake] = useState<number | null>(null);
+  const [waterIntake, setWaterIntake] = useState(null);
 
   const handleCalculate = () => {
     const calculatedIntake = calculateWaterIntake(parseFloat(weight));
@@ -159,7 +159,7 @@ const NutrientCalculator = () => {
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('male');
-  const [bmr, setBMR] = useState<number | null>(null);
+  const [bmr, setBMR] = useState(null);
 
   const handleCalculate = () => {
     const calculatedBMR = calculateBMR(parseFloat(weight), parseFloat(height), parseInt(age), gender);
@@ -219,7 +219,7 @@ const NutrientCalculator = () => {
 
 // Kidney Health Quiz Component
 const KidneyHealthQuiz = () => {
-  const [score, setScore] = useState<number | null>(null);
+  const [score, setScore] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
   const questions = [
@@ -240,7 +240,7 @@ const KidneyHealthQuiz = () => {
     }
   ];
 
-  const handleAnswer = (answerIndex: number) => {
+  const handleAnswer = (answerIndex) => {
     if (answerIndex === questions[currentQuestion].correctAnswer) {
       setScore((prevScore) => (prevScore || 0) + 1);
     }
