@@ -1,18 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun } from 'lucide-react';
 
 const Dashboard = () => {
   const [weight, setWeight] = useState('');
@@ -24,68 +19,38 @@ const Dashboard = () => {
   const [bmr, setBMR] = useState(null);
   const [dailyCalories, setDailyCalories] = useState(null);
   const [waterIntake, setWaterIntake] = useState(null);
-  const [activeTab, setActiveTab] = useState('calculator');
-  const [customGoals, setCustomGoals] = useState({ protein: 15, carbs: 55, fats: 30 });
-  const [history, setHistory] = useState([]);
-  const [theme, setTheme] = useState('light');
-  const [isOnboarding, setIsOnboarding] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  useEffect(() => {
-    calculateAll();
-  }, [weight, height, age, gender, activityLevel, customGoals]);
-
-  const calculateAll = () => {
-    if (validateInputs()) {
-      calculateBMI();
-      calculateBMR();
-      calculateWaterIntake();
-      updateHistory();
-    }
-  };
-
-  const validateInputs = () => {
-    if (!weight || !height || !age) {
-      setErrorMessage('Please fill in all required fields.');
-      return false;
-    }
-    if (weight <= 0 || height <= 0 || age <= 0) {
-      setErrorMessage('Please enter valid positive numbers for weight, height, and age.');
-      return false;
-    }
-    setErrorMessage('');
-    return true;
-  };
 
   const calculateBMI = () => {
-    const bmiValue = weight / ((height / 100) * (height / 100));
-    setBMI(bmiValue.toFixed(1));
+    if (weight && height) {
+      const bmiValue = weight / ((height / 100) * (height / 100));
+      setBMI(bmiValue.toFixed(1));
+    }
   };
 
   const calculateBMR = () => {
-    let bmrValue;
-    if (gender === 'pria') {
-      bmrValue = 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age);
-    } else {
-      bmrValue = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+    if (weight && height && age) {
+      let bmrValue;
+      if (gender === 'pria') {
+        bmrValue = 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age);
+      } else {
+        bmrValue = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+      }
+      setBMR(Math.round(bmrValue));
+      setDailyCalories(Math.round(bmrValue * parseFloat(activityLevel)));
     }
-    setBMR(Math.round(bmrValue));
-    setDailyCalories(Math.round(bmrValue * parseFloat(activityLevel)));
   };
 
   const calculateWaterIntake = () => {
-    setWaterIntake(Math.round(weight * 0.033 * 1000));
+    if (weight) {
+      setWaterIntake(Math.round(weight * 0.033 * 1000));
+    }
   };
 
-  const updateHistory = () => {
-    const newEntry = {
-      date: new Date().toLocaleDateString(),
-      weight: parseFloat(weight),
-      bmi: parseFloat(bmi),
-      dailyCalories: dailyCalories
-    };
-    setHistory(prevHistory => [...prevHistory, newEntry]);
-  };
+  useEffect(() => {
+    calculateBMI();
+    calculateBMR();
+    calculateWaterIntake();
+  }, [weight, height, age, gender, activityLevel]);
 
   const getBMICategory = () => {
     if (bmi === null) return '';
@@ -96,255 +61,176 @@ const Dashboard = () => {
     return 'Gemuk (Kelebihan berat badan parah)';
   };
 
-  const getHealthRecommendations = () => {
-    const bmiCategory = getBMICategory();
-    if (bmiCategory.includes('Kurus')) {
-      return "Fokus pada peningkatan asupan kalori dan protein. Konsultasikan dengan ahli gizi untuk rencana makan yang sehat.";
-    } else if (bmiCategory.includes('Gemuk')) {
-      return "Pertimbangkan untuk meningkatkan aktivitas fisik dan mengurangi asupan kalori. Konsultasikan dengan dokter untuk rencana penurunan berat badan yang aman.";
-    } else {
-      return "Pertahankan gaya hidup sehat Anda dengan diet seimbang dan olahraga teratur.";
-    }
-  };
-
   const nutrientData = [
-    { name: 'Protein', amount: Math.round(dailyCalories * customGoals.protein / 100 / 4), unit: 'g' },
-    { name: 'Lemak', amount: Math.round(dailyCalories * customGoals.fats / 100 / 9), unit: 'g' },
-    { name: 'Karbohidrat', amount: Math.round(dailyCalories * customGoals.carbs / 100 / 4), unit: 'g' },
+    { name: 'Protein', amount: Math.round(dailyCalories * 0.15 / 4), unit: 'g' },
+    { name: 'Lemak', amount: Math.round(dailyCalories * 0.3 / 9), unit: 'g' },
+    { name: 'Karbohidrat', amount: Math.round(dailyCalories * 0.55 / 4), unit: 'g' },
+    { name: 'Natrium', amount: 1500, unit: 'mg' },
+    { name: 'Mineral', amount: 'Bervariasi', unit: '' },
   ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        duration: 0.5,
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 24 }
-    }
-  };
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
-  const OnboardingContent = () => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <h2 className="text-2xl font-bold mb-4">Selamat datang di Dashboard Kesehatan!</h2>
-      <p className="mb-4">Dashboard ini membantu Anda menghitung dan melacak berbagai metrik kesehatan penting:</p>
-      <ul className="list-disc pl-5 mb-4">
-        <li>Kalkulator BMI, BMR, dan Kebutuhan Kalori</li>
-        <li>Pelacakan Nutrisi</li>
-        <li>Rekomendasi Kesehatan Personalisasi</li>
-        <li>Pelacakan Kemajuan</li>
-      </ul>
-      <p className="mb-4">Mulailah dengan memasukkan data Anda di tab Kalkulator.</p>
-      <Button onClick={() => setIsOnboarding(false)}>Mulai</Button>
-    </motion.div>
-  );
-
   return (
-    <motion.div 
-      className={`min-h-screen flex flex-col items-center justify-center p-4 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-orange-50'}`}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      {isOnboarding ? (
-        <OnboardingContent />
-      ) : (
-        <motion.div 
-          className={`w-full max-w-4xl rounded-lg shadow-xl p-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-          variants={itemVariants}
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-orange-700'}`}>Dashboard Kesehatan</h1>
-            <Button onClick={toggleTheme} variant="outline">
-              {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
-            </Button>
-          </div>
+    <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6">
+        <h1 className="text-3xl font-bold mb-6 text-center text-orange-700">Health Dashboard</h1>
+        
+        <Tabs defaultValue="calculator" className="w-full">
+          <TabsList className="w-full justify-center mb-4">
+            <TabsTrigger value="calculator" className="flex-1">Kalkulator</TabsTrigger>
+            <TabsTrigger value="nutrition" className="flex-1">Nutrisi</TabsTrigger>
+            <TabsTrigger value="education" className="flex-1">Edukasi</TabsTrigger>
+          </TabsList>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-center mb-4">
-              <TabsTrigger value="calculator" className="flex-1">Kalkulator</TabsTrigger>
-              <TabsTrigger value="nutrition" className="flex-1">Nutrisi</TabsTrigger>
-              <TabsTrigger value="progress" className="flex-1">Kemajuan</TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex-1">Rekomendasi</TabsTrigger>
-            </TabsList>
+          <TabsContent value="calculator">
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Kalkulator Kesehatan</CardTitle>
+                <CardDescription>Hitung IMT, BMR, dan kebutuhan kalori harian Anda</CardDescription>
+              </CardHeader>
+              <CardContent className="mt-4">
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="weight" className="text-orange-700">Berat Badan (kg)</Label>
+                      <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="border-orange-200" />
+                    </div>
+                    <div>
+                      <Label htmlFor="height" className="text-orange-700">Tinggi Badan (cm)</Label>
+                      <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="border-orange-200" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="age" className="text-orange-700">Usia</Label>
+                      <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className="border-orange-200" />
+                    </div>
+                    <div>
+                      <Label htmlFor="gender" className="text-orange-700">Jenis Kelamin</Label>
+                      <Select value={gender} onValueChange={setGender}>
+                        <SelectTrigger id="gender" className="border-orange-200">
+                          <SelectValue placeholder="Pilih jenis kelamin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pria">Pria</SelectItem>
+                          <SelectItem value="wanita">Wanita</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="activity" className="text-orange-700">Tingkat Aktivitas</Label>
+                    <Select value={activityLevel} onValueChange={setActivityLevel}>
+                      <SelectTrigger id="activity" className="border-orange-200">
+                        <SelectValue placeholder="Pilih tingkat aktivitas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1.2">Hampir tidak pernah berolahraga</SelectItem>
+                        <SelectItem value="1.3">Jarang berolahraga</SelectItem>
+                        <SelectItem value="1.4">Sering berolahraga</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="justify-center">
+                <Button onClick={() => { calculateBMI(); calculateBMR(); calculateWaterIntake(); }} className="bg-orange-500 hover:bg-orange-600">Hitung</Button>
+              </CardFooter>
+            </Card>
             
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <TabsContent value="calculator">
-                  <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-                    <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-                      <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Kalkulator Kesehatan</CardTitle>
-                      <CardDescription>Hitung IMT, BMR, dan kebutuhan kalori harian Anda</CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-4">
-                      <motion.div className="grid gap-4" variants={containerVariants}>
-                        <motion.div className="grid grid-cols-2 gap-4" variants={itemVariants}>
-                          <div>
-                            <Label htmlFor="weight" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Berat Badan (kg)</Label>
-                            <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-                          </div>
-                          <div>
-                            <Label htmlFor="height" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Tinggi Badan (cm)</Label>
-                            <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-                          </div>
-                        </motion.div>
-                        <motion.div className="grid grid-cols-2 gap-4" variants={itemVariants}>
-                          <div>
-                            <Label htmlFor="age" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Usia</Label>
-                            <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-                          </div>
-                          <div>
-                            <Label htmlFor="gender" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Jenis Kelamin</Label>
-                            <Select value={gender} onValueChange={setGender}>
-                              <SelectTrigger id="gender" className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'}>
-                                <SelectValue placeholder="Pilih jenis kelamin" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pria">Pria</SelectItem>
-                                <SelectItem value="wanita">Wanita</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                          <Label htmlFor="activity" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Tingkat Aktivitas</Label>
-                          <Select value={activityLevel} onValueChange={setActivityLevel}>
-                            <SelectTrigger id="activity" className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'}>
-                              <SelectValue placeholder="Pilih tingkat aktivitas" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="1.2">Sedentari (kurang dari 1.5 jam/hari)</SelectItem>
-                              <SelectItem value="1.375">Ringan (1.5-3 jam/hari)</SelectItem>
-                              <SelectItem value="1.55">Moderat (3-5 jam/hari)</SelectItem>
-                              <SelectItem value="1.725">Berat (5-7 jam/hari)</SelectItem>
-                              <SelectItem value="1.9">Ekstra berat (lebih dari 7 jam/hari)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </motion.div>
-                      </motion.div>
-                      <motion.div variants={itemVariants}>
-                        <Button onClick={calculateAll} className={`mt-4 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-700 hover:bg-orange-800'} text-white font-bold py-2 px-4 rounded`}>Hitung</Button>
-                      </motion.div>
-                      {errorMessage && (
-                        <Alert variant="destructive" className="mt-4">
-                          <AlertTitle>Error</AlertTitle>
-                          <AlertDescription>{errorMessage}</AlertDescription>
-                        </Alert>
-                      )}
-                    </CardContent>
-                    <CardFooter>
-                    <motion.div className="grid gap-2" variants={containerVariants}>
-                        <motion.p variants={itemVariants}>IMT: {bmi ? bmi : 'Belum dihitung'}</motion.p>
-                        <motion.p variants={itemVariants}>Kategori IMT: {getBMICategory()}</motion.p>
-                        <motion.p variants={itemVariants}>BMR: {bmr ? bmr : 'Belum dihitung'}</motion.p>
-                        <motion.p variants={itemVariants}>Kebutuhan kalori harian: {dailyCalories ? dailyCalories : 'Belum dihitung'}</motion.p>
-                        <motion.p variants={itemVariants}>Kebutuhan air harian: {waterIntake ? waterIntake : 'Belum dihitung'} ml</motion.p>
-                      </motion.div>
-                    </CardFooter>
-                  </Card>
-                </TabsContent>
+            {bmi && bmr && dailyCalories && (
+              <Card className="mt-4 border-orange-200">
+                <CardHeader className="bg-orange-100">
+                  <CardTitle className="text-orange-800">Hasil</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-orange-700">IMT: {bmi} ({getBMICategory()})</p>
+                  <p className="text-orange-700">BMR: {bmr} kkal</p>
+                  <p className="text-orange-700">Kebutuhan Kalori Harian: {dailyCalories} kkal</p>
+                  <p className="text-orange-700">Asupan Air Harian: {waterIntake} ml</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="nutrition">
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Panduan Nutrisi Harian</CardTitle>
+                <CardDescription>Berdasarkan kebutuhan kalori harian Anda</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dailyCalories ? (
+                  <div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={nutrientData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="amount" stroke="#f97316" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <ul className="list-disc pl-5 mt-4 text-orange-700">
+                      {nutrientData.map((nutrient, index) => (
+                        <li key={index}>
+                          {nutrient.name}: {nutrient.amount} {nutrient.unit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-orange-700">Silakan hitung kebutuhan kalori harian Anda terlebih dahulu.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="education">
+            <Card className="border-orange-200">
+              <CardHeader className="bg-orange-100">
+                <CardTitle className="text-orange-800">Gagal Ginjal pada Anak</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pengertian</h3>
+                <p className="text-orange-600">Gagal ginjal adalah kondisi di mana ginjal tidak mampu lagi menjalankan fungsinya untuk menyaring limbah dan kelebihan cairan dari darah. Pada anak-anak, kondisi ini bisa bersifat akut (tiba-tiba) atau kronis (jangka panjang).</p>
                 
-                <TabsContent value="progress">
-                  <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-                    <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-                      <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Kemajuan</CardTitle>
-                      <CardDescription>Lacak kemajuan kesehatan Anda dari waktu ke waktu</CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-4">
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={history}>
-                            <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-                            <Line type="monotone" dataKey="bmi" stroke="#82ca9d" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                            <Tooltip />
-                            <Legend />
-                          </LineChart>
-                        </ResponsiveContainer>
-                        <div className="mt-4">
-                          <h3 className="text-lg font-semibold mb-2">History Log</h3>
-                          <ul className="space-y-2">
-                            {history.slice(-5).reverse().map((entry, index) => (
-                              <li key={index} className="border-b pb-2">
-                                <strong>{entry.date}:</strong> Weight: {entry.weight}kg, BMI: {entry.bmi}, Calories: {entry.dailyCalories}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Gejala</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Tekanan darah tinggi</li>
+                  <li>Kehilangan berat badan atau pertumbuhan yang melambat</li>
+                  <li>Oedema (pembengkakan) terutama pada mata, kaki, atau pergelangan kaki</li>
+                  <li>Kelelahan atau lesu</li>
+                  <li>Mual dan muntah</li>
+                  <li>Sering buang air kecil atau kurang buang air kecil</li>
+                  <li>Urin berdarah atau berbusa</li>
+                </ul>
                 
-                <TabsContent value="recommendations">
-                  <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-                    <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-                      <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Rekomendasi Kesehatan</CardTitle>
-                      <CardDescription>Saran personalisasi berdasarkan data Anda</CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-4">
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <h3 className="text-lg font-semibold mb-2">Rekomendasi Umum</h3>
-                        <p className="mb-4">{getHealthRecommendations()}</p>
-                        <h3 className="text-lg font-semibold mb-2">Saran Nutrisi</h3>
-                        <ul className="list-disc pl-5 mb-4">
-                          <li>Pastikan untuk mengonsumsi {nutrientData[0].amount}g protein setiap hari untuk mendukung massa otot dan pemulihan.</li>
-                          <li>Batasi asupan lemak hingga {nutrientData[1].amount}g per hari, fokus pada lemak sehat seperti yang ditemukan dalam ikan, kacang-kacangan, dan minyak zaitun.</li>
-                          <li>Konsumsi sekitar {nutrientData[2].amount}g karbohidrat sehari, utamakan sumber karbohidrat kompleks seperti biji-bijian, sayuran, dan kacang-kacangan.</li>
-                        </ul>
-                        <h3 className="text-lg font-semibold mb-2">Saran Aktivitas</h3>
-                        <p>Berdasarkan tingkat aktivitas Anda, pertimbangkan untuk:</p>
-                        <ul className="list-disc pl-5 mb-4">
-                          <li>Melakukan aktivitas kardio sedang selama 150 menit per minggu.</li>
-                          <li>Memasukkan latihan kekuatan 2-3 kali seminggu untuk membangun dan mempertahankan massa otot.</li>
-                          <li>Meningkatkan aktivitas harian Anda, seperti berjalan kaki atau naik tangga, untuk membakar kalori tambahan.</li>
-                        </ul>
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </motion.div>
-            </AnimatePresence>
-          </Tabs>
-        </motion.div>
-      )}
-    </motion.div>
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pencegahan</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Pengelolaan penyakit dasar: Seperti diabetes atau hipertensi</li>
+                  <li>Hindari penggunaan obat-obatan tanpa pengawasan dokter</li>
+                  <li>Konsumsi air yang cukup</li>
+                  <li>Pengawasan rutin terhadap kesehatan ginjal, terutama jika memiliki riwayat keluarga dengan penyakit ginjal</li>
+                </ul>
+                
+                <h3 className="text-lg font-semibold text-orange-700 mt-4">Komplikasi</h3>
+                <ul className="list-disc pl-5 text-orange-600">
+                  <li>Kerusakan jantung atau pembuluh darah</li>
+                  <li>Anemia</li>
+                  <li>Kerusakan tulang atau gangguan mineral</li>
+                  <li>Gangguan elektrolit, seperti hiperkalemia</li>
+                  <li>Kematian mendadak</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      <footer className="mt-8 text-orange-700 text-center">
+        &copy; 2024 Atania Ilma. Hak cipta dilindungi undang-undang.
+      </footer>
+    </div>
   );
 };
 
