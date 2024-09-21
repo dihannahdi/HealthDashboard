@@ -1,204 +1,322 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Daily Health Guide</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f8ff;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        header {
-            background-color: #00bfff;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin: 0;
-        }
-        .section {
-            margin: 20px 0;
-            padding: 20px;
-            background: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            transition: transform 0.3s ease;
-        }
-        .section:hover {
-            transform: scale(1.02);
-        }
-        .calculator-inputs {
-            margin-top: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-        .calculator-inputs input {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .btn {
-            background-color: #00bfff;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #009acd;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e0f7fa;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-<body>
+'use client';
 
-    <header>
-        <h1>Your Daily Health Guide</h1>
-    </header>
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-    <div class="container">
-        <!-- Welcome Section -->
-        <section class="section">
-            <h2>Welcome to Your Daily Health Guide!</h2>
-            <p>Explore essential tools to calculate your BMI, daily water and nutrient intake, and learn about kidney health.</p>
-        </section>
+// Utility functions
+const calculateBMI = (weight: number, height: number): number => {
+  return weight / (height * height);
+};
 
-        <!-- BMI Calculator Section -->
-        <section class="section" id="bmi">
-            <h2>IMT (Body Mass Index) Calculator</h2>
-            <p>Enter your weight and height to calculate your BMI and understand your category:</p>
-            <div class="calculator-inputs">
-                <label for="weight">Weight (kg):</label>
-                <input type="number" id="weight" placeholder="Enter your weight in kg">
-                <label for="height">Height (cm):</label>
-                <input type="number" id="height" placeholder="Enter your height in cm">
-                <button class="btn" onclick="calculateBMI()">Calculate BMI</button>
-            </div>
-            <div class="result" id="bmiResult"></div>
-        </section>
+const getBMICategory = (bmi: number): string => {
+  if (bmi < 17.0) return 'Severe underweight';
+  if (bmi < 18.5) return 'Mild underweight';
+  if (bmi <= 25.0) return 'Normal';
+  if (bmi <= 27.0) return 'Mild overweight';
+  return 'Severe overweight';
+};
 
-        <!-- Water Intake Section -->
-        <section class="section" id="water">
-            <h2>Daily Water Consumption Standards</h2>
-            <p>Find out how much water you need based on your weight and daily activity:</p>
-            <div class="calculator-inputs">
-                <label for="weightWater">Weight (kg):</label>
-                <input type="number" id="weightWater" placeholder="Enter your weight in kg">
-                <button class="btn" onclick="calculateWaterIntake()">Calculate Water Intake</button>
-            </div>
-            <div class="result" id="waterResult"></div>
-        </section>
+const calculateWaterIntake = (weight: number): number => {
+  return weight * 0.033; // Simplified calculation
+};
 
-        <!-- Daily Nutrient Calculator Section -->
-        <section class="section" id="nutrients">
-            <h2>Daily Nutrient Intake</h2>
-            <p>Enter your details to receive personalized nutrient recommendations:</p>
-            <div class="calculator-inputs">
-                <label for="age">Age:</label>
-                <input type="number" id="age" placeholder="Enter your age">
-                <label for="gender">Gender:</label>
-                <select id="gender">
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                </select>
-                <label for="activity">Physical Activity Level:</label>
-                <select id="activity">
-                    <option value="1.2">Almost never exercises</option>
-                    <option value="1.3">Rarely exercises</option>
-                    <option value="1.4">Frequently exercises</option>
-                </select>
-                <label for="weightNutrient">Weight (kg):</label>
-                <input type="number" id="weightNutrient" placeholder="Enter your weight in kg">
-                <label for="heightNutrient">Height (cm):</label>
-                <input type="number" id="heightNutrient" placeholder="Enter your height in cm">
-                <button class="btn" onclick="calculateNutrients()">Calculate Nutrients</button>
-            </div>
-            <div class="result" id="nutrientResult"></div>
-        </section>
+const calculateBMR = (weight: number, height: number, age: number, gender: string): number => {
+  if (gender === 'male') {
+    return 66.5 + (13.7 * weight) + (5 * height * 100) - (6.8 * age);
+  } else {
+    return 655 + (9.6 * weight) + (1.8 * height * 100) - (4.7 * age);
+  }
+};
 
-        <!-- Kidney Health Quiz Section -->
-        <section class="section" id="kidney">
-            <h2>Kidney Health Education</h2>
-            <p>Learn about kidney health and take our kidney health quiz to test your knowledge.</p>
-            <button class="btn" onclick="startKidneyQuiz()">Start Kidney Health Quiz</button>
-        </section>
+// Header Component
+const Header = () => {
+  return (
+    <motion.header
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white shadow-md"
+    >
+      <div className="container mx-auto px-4 py-6 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-blue-600">Daily Health Guide</h1>
+        <nav>
+          <ul className="flex space-x-4">
+            <li><a href="#bmi" className="text-blue-600 hover:text-blue-800">BMI</a></li>
+            <li><a href="#water" className="text-blue-600 hover:text-blue-800">Water Intake</a></li>
+            <li><a href="#nutrients" className="text-blue-600 hover:text-blue-800">Nutrients</a></li>
+            <li><a href="#kidney" className="text-blue-600 hover:text-blue-800">Kidney Health</a></li>
+          </ul>
+        </nav>
+      </div>
+    </motion.header>
+  );
+};
+
+// Footer Component
+const Footer = () => {
+  return (
+    <footer className="bg-gray-100 py-6">
+      <div className="container mx-auto px-4 text-center">
+        <p>&copy; 2024 Daily Health Guide. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+};
+
+// BMI Calculator Component
+const BMICalculator = () => {
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [bmi, setBMI] = useState<number | null>(null);
+
+  const handleCalculate = () => {
+    const calculatedBMI = calculateBMI(parseFloat(weight), parseFloat(height));
+    setBMI(calculatedBMI);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-2xl font-bold mb-4">BMI Calculator</h2>
+      <div className="space-y-4">
+        <Input
+          type="number"
+          placeholder="Weight (kg)"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+        />
+        <Input
+          type="number"
+          placeholder="Height (m)"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+        />
+        <Button onClick={handleCalculate}>Calculate BMI</Button>
+        {bmi !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4"
+          >
+            <p className="text-lg font-semibold">Your BMI: {bmi.toFixed(2)}</p>
+            <p className="text-md">Category: {getBMICategory(bmi)}</p>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Water Intake Calculator Component
+const WaterIntakeCalculator = () => {
+  const [weight, setWeight] = useState('');
+  const [waterIntake, setWaterIntake] = useState<number | null>(null);
+
+  const handleCalculate = () => {
+    const calculatedIntake = calculateWaterIntake(parseFloat(weight));
+    setWaterIntake(calculatedIntake);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-2xl font-bold mb-4">Water Intake Calculator</h2>
+      <div className="space-y-4">
+        <Input
+          type="number"
+          placeholder="Weight (kg)"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+        />
+        <Button onClick={handleCalculate}>Calculate Water Intake</Button>
+        {waterIntake !== null && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-lg font-semibold mt-4"
+          >
+            Recommended daily water intake: {waterIntake.toFixed(2)} liters
+          </motion.p>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Nutrient Calculator Component
+const NutrientCalculator = () => {
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('male');
+  const [bmr, setBMR] = useState<number | null>(null);
+
+  const handleCalculate = () => {
+    const calculatedBMR = calculateBMR(parseFloat(weight), parseFloat(height), parseInt(age), gender);
+    setBMR(calculatedBMR);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-2xl font-bold mb-4">Nutrient Calculator</h2>
+      <div className="space-y-4">
+        <Input
+          type="number"
+          placeholder="Weight (kg)"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+        />
+        <Input
+          type="number"
+          placeholder="Height (m)"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+        />
+        <Input
+          type="number"
+          placeholder="Age"
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+        />
+        <select
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        <Button onClick={handleCalculate}>Calculate BMR</Button>
+        {bmr !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4"
+          >
+            <p className="text-lg font-semibold">Your BMR: {bmr.toFixed(2)} calories/day</p>
+            <p className="text-md">This is your basal metabolic rate. Your total daily calorie needs will depend on your activity level.</p>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Kidney Health Quiz Component
+const KidneyHealthQuiz = () => {
+  const [score, setScore] = useState<number | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+
+  const questions = [
+    {
+      question: "How much water do you drink daily?",
+      answers: ["Less than 1 liter", "1-2 liters", "2-3 liters", "More than 3 liters"],
+      correctAnswer: 2
+    },
+    {
+      question: "How often do you exercise?",
+      answers: ["Never", "1-2 times a week", "3-4 times a week", "5 or more times a week"],
+      correctAnswer: 2
+    },
+    {
+      question: "Do you smoke?",
+      answers: ["Yes", "No"],
+      correctAnswer: 1
+    }
+  ];
+
+  const handleAnswer = (answerIndex: number) => {
+    if (answerIndex === questions[currentQuestion].correctAnswer) {
+      setScore((prevScore) => (prevScore || 0) + 1);
+    }
+
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Quiz finished
+      setCurrentQuestion(-1);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-6 rounded-lg shadow-lg"
+    >
+      <h2 className="text-2xl font-bold mb-4">Kidney Health Quiz</h2>
+      {currentQuestion >= 0 && currentQuestion < questions.length ? (
+        <div>
+          <p className="text-lg mb-4">{questions[currentQuestion].question}</p>
+          <div className="space-y-2">
+            {questions[currentQuestion].answers.map((answer, index) => (
+              <Button key={index} onClick={() => handleAnswer(index)} className="w-full">
+                {answer}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <p className="text-xl font-semibold mb-2">Quiz Completed!</p>
+          <p className="text-lg">Your score: {score} out of {questions.length}</p>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
+
+// Main Page Component
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <motion.h1
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl font-bold text-center mb-8"
+        >
+          Welcome to Your Daily Health Guide!
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-xl text-center mb-12"
+        >
+          Explore essential tools to calculate your BMI, daily water and nutrient intake, and learn about kidney health.
+        </motion.p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <BMICalculator />
+          <WaterIntakeCalculator />
+          <NutrientCalculator />
+          <KidneyHealthQuiz />
+        </div>
+      </main>
+      <Footer />
     </div>
-
-    <script>
-        function calculateBMI() {
-            const weight = parseFloat(document.getElementById("weight").value);
-            const height = parseFloat(document.getElementById("height").value) / 100;
-
-            if (isNaN(weight) || isNaN(height) || height === 0) {
-                document.getElementById("bmiResult").textContent = "Please enter valid weight and height.";
-                return;
-            }
-
-            const bmi = weight / (height * height);
-            let category;
-
-            if (bmi < 17) category = "Severe underweight";
-            else if (bmi >= 17 && bmi <= 18.4) category = "Mild underweight";
-            else if (bmi >= 18.5 && bmi <= 25) category = "Normal";
-            else if (bmi >= 25.1 && bmi <= 27) category = "Mild overweight";
-            else category = "Severe overweight";
-
-            document.getElementById("bmiResult").textContent = `Your BMI is ${bmi.toFixed(2)}, which means you are in the ${category} category.`;
-        }
-
-        function calculateWaterIntake() {
-            const weight = parseFloat(document.getElementById("weightWater").value);
-            if (isNaN(weight) || weight <= 0) {
-                document.getElementById("waterResult").textContent = "Please enter a valid weight.";
-                return;
-            }
-
-            const waterIntake = (weight * 30) / 1000; // Recommendation: 30 ml per kg of body weight
-            document.getElementById("waterResult").textContent = `You should drink approximately ${waterIntake.toFixed(2)} liters of water per day.`;
-        }
-
-        function calculateNutrients() {
-            const age = parseFloat(document.getElementById("age").value);
-            const gender = document.getElementById("gender").value;
-            const activity = parseFloat(document.getElementById("activity").value);
-            const weight = parseFloat(document.getElementById("weightNutrient").value);
-            const height = parseFloat(document.getElementById("heightNutrient").value);
-
-            if (isNaN(age) || isNaN(weight) || isNaN(height) || age <= 0 || weight <= 0 || height <= 0) {
-                document.getElementById("nutrientResult").textContent = "Please enter valid inputs.";
-                return;
-            }
-
-            const bmr = gender === "male"
-                ? 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age)
-                : 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
-
-            const dailyCalories = bmr * activity;
-
-            document.getElementById("nutrientResult").textContent = `Your BMR is ${bmr.toFixed(2)}. You should consume approximately ${dailyCalories.toFixed(2)} calories per day.`;
-        }
-
-        function startKidneyQuiz() {
-            alert("Kidney Health Quiz Coming Soon!");
-        }
-    </script>
-</body>
-</html>
+  );
+}
