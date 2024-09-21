@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, ScatterPlot, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Trophy, Bell, User } from 'lucide-react';
+
 
 const Dashboard = () => {
   // User data and settings
@@ -302,7 +305,8 @@ const Dashboard = () => {
             <div>
               <Label htmlFor="weight" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Berat Badan (kg)</Label>
               <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-              <div>
+            </div>
+            <div>
               <Label htmlFor="height" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Tinggi Badan (cm)</Label>
               <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
             </div>
@@ -340,9 +344,9 @@ const Dashboard = () => {
               </SelectContent>
             </Select>
           </motion.div>
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <Button onClick={calculateAll} className={`mt-4 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-700 hover:bg-orange-800'} text-white font-bold py-2 px-4 rounded`}>Hitung</Button>
+          <motion.div variants={itemVariants}>
+            <Button onClick={calculateAll} className={`mt-4 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-700 hover:bg-orange-800'} text-white font-bold py-2 px-4 rounded`}>Hitung</Button>
+          </motion.div>
         </motion.div>
         {errorMessage && (
           <Alert variant="destructive" className="mt-4">
@@ -606,71 +610,24 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="mb-6">
-            <Tabs defaultValue="calculator" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="calculator">Calculator</TabsTrigger>
-                <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-                <TabsTrigger value="progress">Progress</TabsTrigger>
-                <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                <TabsTrigger value="reminders">Reminders</TabsTrigger>
-              </TabsList>
-              <AnimatePresence mode="wait">
-                <TabsContent value="calculator">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <CalculatorContent />
-                  </motion.div>
-                </TabsContent>
-                <TabsContent value="nutrition">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <NutritionContent />
-                  </motion.div>
-                </TabsContent>
-                <TabsContent value="progress">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ProgressVisualization />
-                  </motion.div>
-                </TabsContent>
-                <TabsContent value="achievements">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <AchievementsSection />
-                  </motion.div>
-                </TabsContent>
-                <TabsContent value="reminders">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <RemindersSection />
-                  </motion.div>
-                </TabsContent>
-              </AnimatePresence>
-            </Tabs>
-          </div>
+          <Tabs defaultValue="calculator" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="calculator">Calculator</TabsTrigger>
+              <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
+              <TabsTrigger value="progress">Progress</TabsTrigger>
+              <TabsTrigger value="achievements">Achievements</TabsTrigger>
+              <TabsTrigger value="reminders">Reminders</TabsTrigger>
+            </TabsList>
+            <AnimatePresence mode="wait">
+              <TabsContent value="calculator"><CalculatorContent /></TabsContent>
+              <TabsContent value="nutrition"><NutritionContent /></TabsContent>
+              <TabsContent value="progress"><ProgressVisualization /></TabsContent>
+              <TabsContent value="achievements"><AchievementsSection /></TabsContent>
+              <TabsContent value="reminders"><RemindersSection /></TabsContent>
+            </AnimatePresence>
+          </Tabs>
 
-          <Card className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
+          <Card className={`mt-6 ${theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}`}>
             <CardHeader>
               <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Rekomendasi Kesehatan</CardTitle>
             </CardHeader>
