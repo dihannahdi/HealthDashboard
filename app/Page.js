@@ -170,12 +170,14 @@ const MedicalChatbot = () => {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
 
-  const calculateBMI = () => {
-    const bmiValue = weight / ((height / 100) ** 2);
+  const handleCalculateBMI = () => {
+    if (weight === '' || height === '') return;
+    const bmiValue = parseFloat(weight) / (parseFloat(height) / 100) ** 2;
     setBmi(bmiValue.toFixed(1));
   };
 
   const getBMICategory = (bmi) => {
+    if (bmi === null) return '';
     if (bmi < 17.0) return 'Severe underweight';
     if (bmi < 18.5) return 'Mild underweight';
     if (bmi <= 25.0) return 'Normal';
@@ -233,7 +235,7 @@ const MedicalChatbot = () => {
                 className="w-full p-2 border rounded"
               />
               <button
-                onClick={calculateBMI}
+                onClick={handleCalculateBMI}
                 className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-colors"
               >
                 Calculate BMI
@@ -321,5 +323,6 @@ const MedicalChatbot = () => {
     </div>
   );
 };
+
 
 export default MedicalChatbot;
