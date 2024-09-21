@@ -14,6 +14,8 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Trophy, Bell, User } from 'lucide-react';
+import { useCallback } from 'react';
+import debounce from 'lodash.debounce';
 
 const Dashboard = () => {
   // User data and settings
