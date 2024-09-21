@@ -1,237 +1,204 @@
-'use client';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Daily Health Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #00bfff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .section:hover {
+            transform: scale(1.02);
+        }
+        .calculator-inputs {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .calculator-inputs input {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn {
+            background-color: #00bfff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #009acd;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e0f7fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
 
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+    <header>
+        <h1>Your Daily Health Guide</h1>
+    </header>
 
-const Dashboard = () => {
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('pria');
-  const [activityLevel, setActivityLevel] = useState('1.2');
-  const [bmi, setBMI] = useState(null);
-  const [bmr, setBMR] = useState(null);
-  const [dailyCalories, setDailyCalories] = useState(null);
-  const [waterIntake, setWaterIntake] = useState(null);
+    <div class="container">
+        <!-- Welcome Section -->
+        <section class="section">
+            <h2>Welcome to Your Daily Health Guide!</h2>
+            <p>Explore essential tools to calculate your BMI, daily water and nutrient intake, and learn about kidney health.</p>
+        </section>
 
-  const calculateBMI = () => {
-    if (weight && height) {
-      const bmiValue = weight / ((height / 100) * (height / 100));
-      setBMI(bmiValue.toFixed(1));
-    }
-  };
+        <!-- BMI Calculator Section -->
+        <section class="section" id="bmi">
+            <h2>IMT (Body Mass Index) Calculator</h2>
+            <p>Enter your weight and height to calculate your BMI and understand your category:</p>
+            <div class="calculator-inputs">
+                <label for="weight">Weight (kg):</label>
+                <input type="number" id="weight" placeholder="Enter your weight in kg">
+                <label for="height">Height (cm):</label>
+                <input type="number" id="height" placeholder="Enter your height in cm">
+                <button class="btn" onclick="calculateBMI()">Calculate BMI</button>
+            </div>
+            <div class="result" id="bmiResult"></div>
+        </section>
 
-  const calculateBMR = () => {
-    if (weight && height && age) {
-      let bmrValue;
-      if (gender === 'pria') {
-        bmrValue = 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age);
-      } else {
-        bmrValue = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
-      }
-      setBMR(Math.round(bmrValue));
-      setDailyCalories(Math.round(bmrValue * parseFloat(activityLevel)));
-    }
-  };
+        <!-- Water Intake Section -->
+        <section class="section" id="water">
+            <h2>Daily Water Consumption Standards</h2>
+            <p>Find out how much water you need based on your weight and daily activity:</p>
+            <div class="calculator-inputs">
+                <label for="weightWater">Weight (kg):</label>
+                <input type="number" id="weightWater" placeholder="Enter your weight in kg">
+                <button class="btn" onclick="calculateWaterIntake()">Calculate Water Intake</button>
+            </div>
+            <div class="result" id="waterResult"></div>
+        </section>
 
-  const calculateWaterIntake = () => {
-    if (weight) {
-      setWaterIntake(Math.round(weight * 0.033 * 1000));
-    }
-  };
+        <!-- Daily Nutrient Calculator Section -->
+        <section class="section" id="nutrients">
+            <h2>Daily Nutrient Intake</h2>
+            <p>Enter your details to receive personalized nutrient recommendations:</p>
+            <div class="calculator-inputs">
+                <label for="age">Age:</label>
+                <input type="number" id="age" placeholder="Enter your age">
+                <label for="gender">Gender:</label>
+                <select id="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <label for="activity">Physical Activity Level:</label>
+                <select id="activity">
+                    <option value="1.2">Almost never exercises</option>
+                    <option value="1.3">Rarely exercises</option>
+                    <option value="1.4">Frequently exercises</option>
+                </select>
+                <label for="weightNutrient">Weight (kg):</label>
+                <input type="number" id="weightNutrient" placeholder="Enter your weight in kg">
+                <label for="heightNutrient">Height (cm):</label>
+                <input type="number" id="heightNutrient" placeholder="Enter your height in cm">
+                <button class="btn" onclick="calculateNutrients()">Calculate Nutrients</button>
+            </div>
+            <div class="result" id="nutrientResult"></div>
+        </section>
 
-  useEffect(() => {
-    calculateBMI();
-    calculateBMR();
-    calculateWaterIntake();
-  }, [weight, height, age, gender, activityLevel]);
-
-  const getBMICategory = () => {
-    if (bmi === null) return '';
-    if (bmi < 17.0) return 'Kurus (Berat badan kurang parah)';
-    if (bmi < 18.5) return 'Kurus (Berat badan kurang ringan)';
-    if (bmi < 25.1) return 'Normal';
-    if (bmi < 27.1) return 'Gemuk (Kelebihan berat badan ringan)';
-    return 'Gemuk (Kelebihan berat badan parah)';
-  };
-
-  const nutrientData = [
-    { name: 'Protein', amount: Math.round(dailyCalories * 0.15 / 4), unit: 'g' },
-    { name: 'Lemak', amount: Math.round(dailyCalories * 0.3 / 9), unit: 'g' },
-    { name: 'Karbohidrat', amount: Math.round(dailyCalories * 0.55 / 4), unit: 'g' },
-    { name: 'Natrium', amount: 1500, unit: 'mg' },
-    { name: 'Mineral', amount: 'Bervariasi', unit: '' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6">
-        <h1 className="text-3xl font-bold mb-6 text-center text-orange-700">Health Dashboard</h1>
-        
-        <Tabs defaultValue="calculator" className="w-full">
-          <TabsList className="w-full justify-center mb-4">
-            <TabsTrigger value="calculator" className="flex-1">Kalkulator</TabsTrigger>
-            <TabsTrigger value="nutrition" className="flex-1">Nutrisi</TabsTrigger>
-            <TabsTrigger value="education" className="flex-1">Edukasi</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="calculator">
-            <Card className="border-orange-200">
-              <CardHeader className="bg-orange-100">
-                <CardTitle className="text-orange-800">Kalkulator Kesehatan</CardTitle>
-                <CardDescription>Hitung IMT, BMR, dan kebutuhan kalori harian Anda</CardDescription>
-              </CardHeader>
-              <CardContent className="mt-4">
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="weight" className="text-orange-700">Berat Badan (kg)</Label>
-                      <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="border-orange-200" />
-                    </div>
-                    <div>
-                      <Label htmlFor="height" className="text-orange-700">Tinggi Badan (cm)</Label>
-                      <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="border-orange-200" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="age" className="text-orange-700">Usia</Label>
-                      <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className="border-orange-200" />
-                    </div>
-                    <div>
-                      <Label htmlFor="gender" className="text-orange-700">Jenis Kelamin</Label>
-                      <Select value={gender} onValueChange={setGender}>
-                        <SelectTrigger id="gender" className="border-orange-200">
-                          <SelectValue placeholder="Pilih jenis kelamin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pria">Pria</SelectItem>
-                          <SelectItem value="wanita">Wanita</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="activity" className="text-orange-700">Tingkat Aktivitas</Label>
-                    <Select value={activityLevel} onValueChange={setActivityLevel}>
-                      <SelectTrigger id="activity" className="border-orange-200">
-                        <SelectValue placeholder="Pilih tingkat aktivitas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1.2">Hampir tidak pernah berolahraga</SelectItem>
-                        <SelectItem value="1.3">Jarang berolahraga</SelectItem>
-                        <SelectItem value="1.4">Sering berolahraga</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="justify-center">
-                <Button onClick={() => { calculateBMI(); calculateBMR(); calculateWaterIntake(); }} className="bg-orange-500 hover:bg-orange-600">Hitung</Button>
-              </CardFooter>
-            </Card>
-            
-            {bmi && bmr && dailyCalories && (
-              <Card className="mt-4 border-orange-200">
-                <CardHeader className="bg-orange-100">
-                  <CardTitle className="text-orange-800">Hasil</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-orange-700">IMT: {bmi} ({getBMICategory()})</p>
-                  <p className="text-orange-700">BMR: {bmr} kkal</p>
-                  <p className="text-orange-700">Kebutuhan Kalori Harian: {dailyCalories} kkal</p>
-                  <p className="text-orange-700">Asupan Air Harian: {waterIntake} ml</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="nutrition">
-            <Card className="border-orange-200">
-              <CardHeader className="bg-orange-100">
-                <CardTitle className="text-orange-800">Panduan Nutrisi Harian</CardTitle>
-                <CardDescription>Berdasarkan kebutuhan kalori harian Anda</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {dailyCalories ? (
-                  <div>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={nutrientData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="amount" stroke="#f97316" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                    <ul className="list-disc pl-5 mt-4 text-orange-700">
-                      {nutrientData.map((nutrient, index) => (
-                        <li key={index}>
-                          {nutrient.name}: {nutrient.amount} {nutrient.unit}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-orange-700">Silakan hitung kebutuhan kalori harian Anda terlebih dahulu.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="education">
-            <Card className="border-orange-200">
-              <CardHeader className="bg-orange-100">
-                <CardTitle className="text-orange-800">Gagal Ginjal pada Anak</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pengertian</h3>
-                <p className="text-orange-600">Gagal ginjal adalah kondisi di mana ginjal tidak mampu lagi menjalankan fungsinya untuk menyaring limbah dan kelebihan cairan dari darah. Pada anak-anak, kondisi ini bisa bersifat akut (tiba-tiba) atau kronis (jangka panjang).</p>
-                
-                <h3 className="text-lg font-semibold text-orange-700 mt-4">Gejala</h3>
-                <ul className="list-disc pl-5 text-orange-600">
-                  <li>Tekanan darah tinggi</li>
-                  <li>Kehilangan berat badan atau pertumbuhan yang melambat</li>
-                  <li>Oedema (pembengkakan) terutama pada mata, kaki, atau pergelangan kaki</li>
-                  <li>Kelelahan atau lesu</li>
-                  <li>Mual dan muntah</li>
-                  <li>Sering buang air kecil atau kurang buang air kecil</li>
-                  <li>Urin berdarah atau berbusa</li>
-                </ul>
-                
-                <h3 className="text-lg font-semibold text-orange-700 mt-4">Pencegahan</h3>
-                <ul className="list-disc pl-5 text-orange-600">
-                  <li>Pengelolaan penyakit dasar: Seperti diabetes atau hipertensi</li>
-                  <li>Hindari penggunaan obat-obatan tanpa pengawasan dokter</li>
-                  <li>Konsumsi air yang cukup</li>
-                  <li>Pengawasan rutin terhadap kesehatan ginjal, terutama jika memiliki riwayat keluarga dengan penyakit ginjal</li>
-                </ul>
-                
-                <h3 className="text-lg font-semibold text-orange-700 mt-4">Komplikasi</h3>
-                <ul className="list-disc pl-5 text-orange-600">
-                  <li>Kerusakan jantung atau pembuluh darah</li>
-                  <li>Anemia</li>
-                  <li>Kerusakan tulang atau gangguan mineral</li>
-                  <li>Gangguan elektrolit, seperti hiperkalemia</li>
-                  <li>Kematian mendadak</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-      <footer className="mt-8 text-orange-700 text-center">
-        &copy; 2024 Atania Ilma. Hak cipta dilindungi undang-undang.
-      </footer>
+        <!-- Kidney Health Quiz Section -->
+        <section class="section" id="kidney">
+            <h2>Kidney Health Education</h2>
+            <p>Learn about kidney health and take our kidney health quiz to test your knowledge.</p>
+            <button class="btn" onclick="startKidneyQuiz()">Start Kidney Health Quiz</button>
+        </section>
     </div>
-  );
-};
 
-export default Dashboard;
+    <script>
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById("weight").value);
+            const height = parseFloat(document.getElementById("height").value) / 100;
+
+            if (isNaN(weight) || isNaN(height) || height === 0) {
+                document.getElementById("bmiResult").textContent = "Please enter valid weight and height.";
+                return;
+            }
+
+            const bmi = weight / (height * height);
+            let category;
+
+            if (bmi < 17) category = "Severe underweight";
+            else if (bmi >= 17 && bmi <= 18.4) category = "Mild underweight";
+            else if (bmi >= 18.5 && bmi <= 25) category = "Normal";
+            else if (bmi >= 25.1 && bmi <= 27) category = "Mild overweight";
+            else category = "Severe overweight";
+
+            document.getElementById("bmiResult").textContent = `Your BMI is ${bmi.toFixed(2)}, which means you are in the ${category} category.`;
+        }
+
+        function calculateWaterIntake() {
+            const weight = parseFloat(document.getElementById("weightWater").value);
+            if (isNaN(weight) || weight <= 0) {
+                document.getElementById("waterResult").textContent = "Please enter a valid weight.";
+                return;
+            }
+
+            const waterIntake = (weight * 30) / 1000; // Recommendation: 30 ml per kg of body weight
+            document.getElementById("waterResult").textContent = `You should drink approximately ${waterIntake.toFixed(2)} liters of water per day.`;
+        }
+
+        function calculateNutrients() {
+            const age = parseFloat(document.getElementById("age").value);
+            const gender = document.getElementById("gender").value;
+            const activity = parseFloat(document.getElementById("activity").value);
+            const weight = parseFloat(document.getElementById("weightNutrient").value);
+            const height = parseFloat(document.getElementById("heightNutrient").value);
+
+            if (isNaN(age) || isNaN(weight) || isNaN(height) || age <= 0 || weight <= 0 || height <= 0) {
+                document.getElementById("nutrientResult").textContent = "Please enter valid inputs.";
+                return;
+            }
+
+            const bmr = gender === "male"
+                ? 66.5 + (13.7 * weight) + (5 * height) - (6.8 * age)
+                : 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+
+            const dailyCalories = bmr * activity;
+
+            document.getElementById("nutrientResult").textContent = `Your BMR is ${bmr.toFixed(2)}. You should consume approximately ${dailyCalories.toFixed(2)} calories per day.`;
+        }
+
+        function startKidneyQuiz() {
+            alert("Kidney Health Quiz Coming Soon!");
+        }
+    </script>
+</body>
+</html>
