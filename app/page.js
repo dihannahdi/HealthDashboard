@@ -10,7 +10,7 @@ const calculateBMI = (weight, height): number => {
   return weight / (height * height);
 };
 
-const getBMICategory = (bmi: number): string => {
+const getBMICategory = (bmi): string => {
   if (bmi < 17.0) return 'Severe underweight';
   if (bmi < 18.5) return 'Mild underweight';
   if (bmi <= 25.0) return 'Normal';
