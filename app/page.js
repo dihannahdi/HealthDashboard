@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 // Utility functions
-const calculateBMI = (weight: number, height: number): number => {
+const calculateBMI = (weight, height): number => {
   return weight / (height * height);
 };
 
