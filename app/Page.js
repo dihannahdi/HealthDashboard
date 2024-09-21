@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, Droplet, Apple, Heart } from 'lucide-react';
