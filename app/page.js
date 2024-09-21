@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import debounce from 'lodash.debounce';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +14,6 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, Trophy, Bell, User } from 'lucide-react';
-
 
 const Dashboard = () => {
   // User data and settings
@@ -52,11 +52,10 @@ const Dashboard = () => {
   // AI Chat
   const [showChatbox, setShowChatbox] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching user data from a database
     const fetchUserData = async () => {
-      // In a real application, this would be an API call
       const userData = {
         id: 1,
         name: 'John Doe',
@@ -74,7 +73,6 @@ const Dashboard = () => {
       setGender(userData.gender);
       setActivityLevel(userData.activityLevel);
       
-      // Fetch long-term history
       const historyData = [
         { date: '2023-01-01', weight: 70, bmi: 22.5, dailyCalories: 2000, waterIntake: 2000 },
         { date: '2023-02-01', weight: 69, bmi: 22.2, dailyCalories: 2050, waterIntake: 2100 },
@@ -83,7 +81,6 @@ const Dashboard = () => {
       ];
       setLongTermHistory(historyData);
       
-      // Set initial achievements
       setAchievements([
         { id: 1, name: 'First Log', description: 'Logged your first health data', achieved: true },
         { id: 2, name: 'Water Champion', description: 'Met water intake goal for 7 days', achieved: false },
@@ -91,7 +88,6 @@ const Dashboard = () => {
         { id: 4, name: 'Consistent Logger', description: 'Logged data for 30 consecutive days', achieved: false },
       ]);
       
-      // Set initial reminders
       setReminders([
         { id: 1, type: 'hydration', message: 'Time to drink water!', time: '10:00', active: true },
         { id: 2, type: 'calories', message: 'Log your lunch', time: '13:00', active: true },
@@ -102,8 +98,13 @@ const Dashboard = () => {
     fetchUserData();
   }, []);
 
-  useEffect(() => {
+  const debouncedCalculateAll = useCallback(debounce(() => {
     calculateAll();
+  }, 500), [weight, height, age, gender, activityLevel, customGoals]);
+
+  useEffect(() => {
+    debouncedCalculateAll();
+    return debouncedCalculateAll.cancel; // Cleanup the debounce on unmount
   }, [weight, height, age, gender, activityLevel, customGoals]);
 
   const calculateAll = () => {
@@ -158,8 +159,6 @@ const Dashboard = () => {
     };
     setHistory(prevHistory => [...prevHistory, newEntry]);
     setLongTermHistory(prevLongTermHistory => [...prevLongTermHistory, newEntry]);
-    
-    // Check for achievements
     checkAchievements(newEntry);
   };
 
@@ -186,7 +185,6 @@ const Dashboard = () => {
   const checkAchievements = (entry) => {
     let newAchievements = [...achievements];
     
-    // Check if user has logged data for 7 consecutive days
     if (longTermHistory.length >= 6 && !achievements.find(a => a.name === 'Week Streak')) {
       newAchievements.push({
         id: newAchievements.length + 1,
@@ -196,7 +194,6 @@ const Dashboard = () => {
       });
     }
     
-    // Check if BMI has improved by 1 point
     const firstEntry = longTermHistory[0];
     const latestEntry = entry;
     if (firstEntry && latestEntry.bmi - firstEntry.bmi <= -1) {
@@ -205,8 +202,6 @@ const Dashboard = () => {
         bmiImprover.achieved = true;
       }
     }
-    
-    // Add more achievement checks here
     
     setAchievements(newAchievements);
   };
@@ -221,17 +216,16 @@ const Dashboard = () => {
 
   const sendChatMessage = (message) => {
     setChatMessages(prevMessages => [...prevMessages, { sender: 'user', text: message }]);
-    
-    // Simulate AI response (replace with actual AI integration)
+    setIsLoadingAI(true);
+
     setTimeout(() => {
       const aiResponse = getAIResponse(message);
       setChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: aiResponse }]);
+      setIsLoadingAI(false);
     }, 1000);
   };
 
   const getAIResponse = (message) => {
-    // This is a placeholder for AI-powered recommendations
-    // In a real application, this would involve calling an AI service
     if (message.toLowerCase().includes('diet')) {
       return `Based on your BMI (${bmi}) and activity level, I recommend a balanced diet with a focus on lean proteins and vegetables. Aim for a calorie intake of ${dailyCalories} per day.`;
     } else if (message.toLowerCase().includes('workout')) {
@@ -293,375 +287,133 @@ const Dashboard = () => {
     </motion.div>
   );
 
-  const CalculatorContent = () => (
-    <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-      <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-        <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Kalkulator Kesehatan</CardTitle>
-        <CardDescription>Hitung IMT, BMR, dan kebutuhan kalori harian Anda</CardDescription>
-      </CardHeader>
-      <CardContent className="mt-4">
-        <motion.div className="grid gap-4" variants={containerVariants}>
-          <motion.div className="grid grid-cols-2 gap-4" variants={itemVariants}>
-            <div>
-              <Label htmlFor="weight" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Berat Badan (kg)</Label>
-              <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-            </div>
-            <div>
-              <Label htmlFor="height" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Tinggi Badan (cm)</Label>
-              <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-            </div>
-          </motion.div>
-          <motion.div className="grid grid-cols-2 gap-4" variants={itemVariants}>
-            <div>
-              <Label htmlFor="age" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Usia</Label>
-              <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'} />
-            </div>
-            <div>
-              <Label htmlFor="gender" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Jenis Kelamin</Label>
-              <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger id="gender" className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'}>
-                  <SelectValue placeholder="Pilih jenis kelamin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pria">Pria</SelectItem>
-                  <SelectItem value="wanita">Wanita</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <Label htmlFor="activity" className={theme === 'dark' ? 'text-white' : 'text-orange-700'}>Tingkat Aktivitas</Label>
-            <Select value={activityLevel} onValueChange={setActivityLevel}>
-              <SelectTrigger id="activity" className={theme === 'dark' ? 'border-gray-600' : 'border-orange-200'}>
-                <SelectValue placeholder="Pilih tingkat aktivitas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1.2">Sedentari (kurang dari 1.5 jam/hari)</SelectItem>
-                <SelectItem value="1.375">Ringan (1.5-3 jam/hari)</SelectItem>
-                <SelectItem value="1.55">Moderat (3-5 jam/hari)</SelectItem>
-                <SelectItem value="1.725">Berat (5-7 jam/hari)</SelectItem>
-                <SelectItem value="1.9">Ekstra berat (lebih dari 7 jam/hari)</SelectItem>
-              </SelectContent>
-            </Select>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <Button onClick={calculateAll} className={`mt-4 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-700 hover:bg-orange-800'} text-white font-bold py-2 px-4 rounded`}>Hitung</Button>
-          </motion.div>
-        </motion.div>
-        {errorMessage && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-      <CardFooter>
-        <motion.div className="grid gap-2" variants={containerVariants}>
-          <motion.p variants={itemVariants}>IMT: {bmi ? bmi : 'Belum dihitung'}</motion.p>
-          <motion.p variants={itemVariants}>Kategori IMT: {getBMICategory()}</motion.p>
-          <motion.p variants={itemVariants}>BMR: {bmr ? bmr : 'Belum dihitung'}</motion.p>
-          <motion.p variants={itemVariants}>Kebutuhan kalori harian: {dailyCalories ? dailyCalories : 'Belum dihitung'}</motion.p>
-          <motion.p variants={itemVariants}>Kebutuhan air harian: {waterIntake ? waterIntake : 'Belum dihitung'} ml</motion.p>
-        </motion.div>
-      </CardFooter>
-    </Card>
-  );
-
-  const NutritionContent = () => (
-    <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-      <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-        <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Nutrisi Harian</CardTitle>
-        <CardDescription>Kebutuhan nutrisi harian dan distribusi makronutrien Anda</CardDescription>
-      </CardHeader>
-      <CardContent className="mt-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            <div className="w-full md:w-1/2 mb-4 md:mb-0">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={nutrientData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="amount"
-                  >
-                    {nutrientData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="w-full md:w-1/2">
-              <h3 className="text-lg font-semibold mb-2">Custom Nutrient Goals</h3>
-              <div className="space-y-4">
-                {Object.entries(customGoals).map(([nutrient, value]) => (
-                  <div key={nutrient}>
-                    <Label htmlFor={nutrient} className="capitalize">{nutrient} (%)</Label>
-                    <Slider
-                      id={nutrient}
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[value]}
-                      onValueChange={(newValue) => setCustomGoals(prev => ({ ...prev, [nutrient]: newValue[0] }))}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Nutrient Breakdown</h3>
-            <ul>
-              {nutrientData.map((nutrient) => (
-                <li key={nutrient.name} className="mb-2">
-                  {nutrient.name}: {nutrient.amount} {nutrient.unit} ({customGoals[nutrient.name.toLowerCase()]}% of daily calories)
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
-      </CardContent>
-    </Card>
-  );
-
-  const ProgressVisualization = () => (
-    <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-      <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-        <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Progress Visualization</CardTitle>
-        <CardDescription>Track your health progress over time</CardDescription>
-      </CardHeader>
-      <CardContent className="mt-4">
-        <Tabs>
-          <TabsList>
-            <TabsTrigger value="weight">Weight</TabsTrigger>
-            <TabsTrigger value="bmi">BMI</TabsTrigger>
-            <TabsTrigger value="calories">Calories</TabsTrigger>
-            <TabsTrigger value="water">Water Intake</TabsTrigger>
-          </TabsList>
-          <TabsContent value="weight">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={longTermHistory}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="weight" stroke="#8884d8" />
-              </LineChart>
-            </ResponsiveContainer>
-          </TabsContent>
-          <TabsContent value="bmi">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={longTermHistory}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="bmi" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
-          </TabsContent>
-          <TabsContent value="calories">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={longTermHistory}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="dailyCalories" stroke="#ffc658" />
-              </LineChart>
-            </ResponsiveContainer>
-          </TabsContent>
-          <TabsContent value="water">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={longTermHistory}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="waterIntake" stroke="#8884d8" />
-              </LineChart>
-            </ResponsiveContainer>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-
-  const AchievementsSection = () => (
-    <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-      <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-        <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Achievements</CardTitle>
-        <CardDescription>Your health milestones and accomplishments</CardDescription>
-      </CardHeader>
-      <CardContent className="mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {achievements.map(achievement => (
-            <Card key={achievement.id} className={achievement.achieved ? 'bg-green-100' : 'bg-gray-100'}>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Trophy className="mr-2" />
-                  {achievement.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{achievement.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const RemindersSection = () => (
-    <Card className={theme === 'dark' ? 'border-gray-700' : 'border-orange-200'}>
-      <CardHeader className={theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}>
-        <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Reminders</CardTitle>
-        <CardDescription>Set and manage your health reminders</CardDescription>
-      </CardHeader>
-      <CardContent className="mt-4">
-        <div className="space-y-2">
-          {reminders.map(reminder => (
-            <div key={reminder.id} className="flex items-center justify-between p-2 bg-gray-100 rounded">
-              <div>
-                <p className="font-semibold">{reminder.message}</p>
-                <p className="text-sm text-gray-600">{reminder.time}</p>
-              </div>
-              <Switch
-                checked={reminder.active}
-                onCheckedChange={() => toggleReminder(reminder.id)}
-              />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const AIChat = () => (
-    <div className="fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="bg-blue-600 text-white p-2 flex justify-between items-center">
-        <h3 className="font-semibold">AI Health Assistant</h3>
-        <button onClick={() => setShowChatbox(false)} className="text-white">&times;</button>
-      </div>
-      <div className="h-64 overflow-y-auto p-2">
-        {chatMessages.map((msg, index) => (
-          <div key={index} className={`mb-2 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
-            <span className={`inline-block p-2 rounded ${msg.sender === 'user' ? 'bg-blue-100' : 'bg-gray-200'}`}>
-              {msg.text}
-            </span>
-          </div>
-        ))}
-      </div>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        const message = e.target.message.value;
-        if (message.trim()) {
-          sendChatMessage(message);
-          e.target.message.value = '';
-        }
-      }} className="p-2 border-t">
-        <Input type="text" name="message" placeholder="Ask for health advice..." />
-      </form>
-    </div>
-  );
-
   return (
-    <motion.div 
-      className={`min-h-screen flex flex-col items-center justify-center p-4 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-orange-50'}`}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className={`dashboard ${theme}`}>
+      <header className="flex justify-between items-center p-4">
+        <h1 className="text-3xl font-bold">Dashboard Kesehatan</h1>
+        <Button onClick={toggleTheme}>{theme === 'light' ? <Moon /> : <Sun />}</Button>
+      </header>
+
       {isOnboarding ? (
         <OnboardingContent />
       ) : (
-        <motion.div 
-          className={`w-full max-w-4xl rounded-lg shadow-xl p-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-          variants={itemVariants}
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-orange-700'}`}>Dashboard Kesehatan</h1>
-            <div className="flex items-center">
-              <Button onClick={toggleTheme} className="mr-2">
-                {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              </Button>
-              {user && (
-                <div className="flex items-center">
-                  <img src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt="User avatar" className="w-8 h-8 rounded-full mr-2" />
-                  <span>{user.name}</span>
+        <Tabs defaultValue="calculator" onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="calculator">Kalkulator</TabsTrigger>
+            <TabsTrigger value="history">Riwayat</TabsTrigger>
+            <TabsTrigger value="chat">Chat AI</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="calculator">
+            <Card>
+              <CardHeader>
+                <CardTitle>Kalkulator Kesehatan</CardTitle>
+                <CardDescription>Masukkan data Anda untuk menghitung BMI, BMR, dan kebutuhan kalori.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={(e) => {
+                  e.preventDefault(); // Mencegah refresh
+                  calculateAll();
+                }}>
+                  <div>
+                    <Label htmlFor="weight">Berat Badan (kg)</Label>
+                    <Input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="height">Tinggi Badan (cm)</Label>
+                    <Input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="age">Usia (tahun)</Label>
+                    <Input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Jenis Kelamin</Label>
+                    <Select onValueChange={setGender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Jenis Kelamin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pria">Pria</SelectItem>
+                        <SelectItem value="wanita">Wanita</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="activityLevel">Tingkat Aktivitas</Label>
+                    <Select onValueChange={setActivityLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Tingkat Aktivitas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1.2">Sedentari (tidak aktif)</SelectItem>
+                        <SelectItem value="1.375">Ringan (latihan 1-3 hari/minggu)</SelectItem>
+                        <SelectItem value="1.55">Sedang (latihan 3-5 hari/minggu)</SelectItem>
+                        <SelectItem value="1.725">Tinggi (latihan 6-7 hari/minggu)</SelectItem>
+                        <SelectItem value="1.9">Sangat Tinggi (latihan dua kali sehari)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button type="submit">Hitung</Button>
+                </form>
+                {errorMessage && <Alert><AlertTitle>Error</AlertTitle><AlertDescription>{errorMessage}</AlertDescription></Alert>}
+                {bmi && <p>BMI Anda: {bmi} - {getBMICategory()}</p>}
+                {bmr && <p>BMR Anda: {bmr} kalori/hari</p>}
+                {dailyCalories && <p>Kebutuhan Kalori Harian: {dailyCalories} kalori</p>}
+                {waterIntake && <p>Kebutuhan Air: {waterIntake} ml</p>}
+                {getHealthRecommendations() && <p>Rekomendasi: {getHealthRecommendations()}</p>}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>Riwayat Kesehatan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul>
+                  {history.map((entry, index) => (
+                    <li key={index}>
+                      Tanggal: {entry.date}, Berat: {entry.weight} kg, BMI: {entry.bmi}, Kalori: {entry.dailyCalories}, Air: {entry.waterIntake} ml
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <Card>
+              <CardHeader>
+                <CardTitle>Chat dengan AI</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="chatbox">
+                  {chatMessages.map((msg, index) => (
+                    <div key={index} className={msg.sender === 'user' ? 'user-message' : 'ai-message'}>
+                      {msg.text}
+                    </div>
+                  ))}
+                  {isLoadingAI && <div className="ai-loading">AI sedang memproses...</div>}
                 </div>
-              )}
-            </div>
-          </div>
-
-          <Tabs defaultValue="calculator" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="calculator">Calculator</TabsTrigger>
-              <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-              <TabsTrigger value="progress">Progress</TabsTrigger>
-              <TabsTrigger value="achievements">Achievements</TabsTrigger>
-              <TabsTrigger value="reminders">Reminders</TabsTrigger>
-            </TabsList>
-            <AnimatePresence mode="wait">
-              <TabsContent value="calculator"><CalculatorContent /></TabsContent>
-              <TabsContent value="nutrition"><NutritionContent /></TabsContent>
-              <TabsContent value="progress"><ProgressVisualization /></TabsContent>
-              <TabsContent value="achievements"><AchievementsSection /></TabsContent>
-              <TabsContent value="reminders"><RemindersSection /></TabsContent>
-            </AnimatePresence>
-          </Tabs>
-
-          <Card className={`mt-6 ${theme === 'dark' ? 'bg-gray-700' : 'bg-orange-100'}`}>
-            <CardHeader>
-              <CardTitle className={theme === 'dark' ? 'text-white' : 'text-orange-800'}>Rekomendasi Kesehatan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>{getHealthRecommendations()}</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+                <form onSubmit={(e) => {
+                  e.preventDefault(); // Mencegah refresh
+                  const message = e.target.message.value;
+                  if (message.trim()) {
+                    sendChatMessage(message);
+                    e.target.message.value = ''; // Kosongkan input setelah mengirim
+                  }
+                }}>
+                  <Input type="text" name="message" placeholder="Tanya tentang diet atau olahraga..." />
+                  <Button type="submit">Kirim</Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
-
-      <AnimatePresence>
-        {showChatbox && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 right-4"
-          >
-            <AIChat />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div 
-        className="fixed bottom-4 left-4"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <Button onClick={() => setShowChatbox(true)} className="rounded-full p-2">
-          <User className="h-5 w-5" />
-        </Button>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 };
 
