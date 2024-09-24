@@ -1,158 +1,262 @@
-'use client';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardHeader, CardContent } from '@shadcn/ui/card';
+import { Alert, AlertDescription, AlertTitle, AlertDialog, AlertDialogAction } from '@shadcn/ui/alert';
+import { v4 as uuidv4 } from 'uuid';
 
-import React, { useState } from 'react';
-import { AlertCircle, Droplet, Apple, Heart } from 'lucide-react';
-
-const MedicalChatbot = () => {
-  const [activeSection, setActiveSection] = useState('home');
+const HealthDashboardChatbot = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [userData, setUserData] = useState({
+    weight: null,
+    height: null,
+    age: null,
+    gender: null,
+    activityLevel: null,
+  });
   const [bmi, setBmi] = useState(null);
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
-  const [error, setError] = useState('');
+  const [bmr, setBmr] = useState(null);
+  const [macros, setMacros] = useState({
+    protein: null,
+    fat: null,
+    carbs: null,
+  });
+  const [showSummary, setShowSummary] = useState(false);
 
-  const calculateBMI = () => {
-    setError('');
-    if (weight === '' || height === '') {
-      setError('Please enter both weight and height.');
-      return;
-    }
-    const weightNum = parseFloat(weight);
-    const heightNum = parseFloat(height);
-    if (isNaN(weightNum) || isNaN(heightNum) || weightNum <= 0 || heightNum <= 0) {
-      setError('Please enter valid positive numbers for weight and height.');
-      return;
-    }
-    const bmiValue = weightNum / ((heightNum / 100) ** 2);
-    setBmi(bmiValue.toFixed(1));
+  const steps = [
+    {
+      title: 'Weight and Height',
+      component: (
+        <UserDataInput
+          field="weight"
+          label="Weight (kg)"
+          value={userData.weight}
+          onChange={(value) => handleUserDataChange('weight', value)}
+        />
+      ),
+    },
+    {
+      title: 'Age and Gender',
+      component: (
+        <UserDataInput
+          field="age"
+          label="Age"
+          value={userData.age}
+          onChange={(value) => handleUserDataChange('age', value)}
+        />
+      ),
+    },
+    {
+      title: 'Activity Level',
+      component: (
+        <UserDataInput
+          field="activityLevel"
+          label="Activity Level"
+          value={userData.activityLevel}
+          onChange={(value) => handleUserDataChange('activityLevel', value)}
+        />
+      ),
+    },
+    {
+      title: 'Health Summary',
+      component: (
+        <HealthSummary
+          bmi={bmi}
+          bmr={bmr}
+          macros={macros}
+          userData={userData}
+        />
+      ),
+    },
+  ];
+
+  const calculateBmi = () => {
+    const { weight, height } = userData;
+    const bmi = weight / (height * height);
+    setBmi(bmi.toFixed(1));
   };
 
-  const getBMICategory = (bmi) => {
-    if (bmi === null) return '';
-    if (bmi < 17.0) return 'Severe underweight';
-    if (bmi < 18.5) return 'Mild underweight';
-    if (bmi <= 25.0) return 'Normal';
-    if (bmi <= 27.0) return 'Mild overweight';
-    return 'Severe overweight';
+  const calculateBmr = () => {
+    const { weight, height, age, gender, activityLevel } = userData;
+    let bmr;
+    if (gender === 'male') {
+      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.33 * age);
+    }
+    bmr *= activityLevelMultiplier[activityLevel];
+    setBmr(Math.round(bmr));
   };
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case 'home':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Welcome to Your Daily Health Guide!</h2>
-            <p>Explore essential tools to calculate your BMI, daily water and nutrient intake, and learn about kidney health.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {['BMI', 'Water', 'Nutrients', 'Kidney'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setActiveSection(item.toLowerCase())}
-                  className="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors"
-                  aria-label={`Go to ${item} section`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      case 'bmi':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">BMI Calculator</h2>
-            <div className="space-y-2">
-              <input
-                type="number"
-                placeholder="Weight (kg)"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full p-2 border rounded"
-                aria-label="Weight in kilograms"
-              />
-              <input
-                type="number"
-                placeholder="Height (cm)"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className="w-full p-2 border rounded"
-                aria-label="Height in centimeters"
-              />
-              <button
-                onClick={calculateBMI}
-                className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-colors"
-                aria-label="Calculate BMI"
-              >
-                Calculate BMI
-              </button>
-            </div>
-            {error && <p className="text-red-500">{error}</p>}
-            {bmi && (
-              <div className="bg-gray-100 p-4 rounded" role="status" aria-live="polite">
-                <p>Your BMI: {bmi}</p>
-                <p>Category: {getBMICategory(parseFloat(bmi))}</p>
-              </div>
-            )}
-          </div>
-        );
-      case 'water':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Daily Water Consumption</h2>
-            <p>Recommended daily water intake varies by age, weight, and activity level.</p>
-            <Droplet className="w-16 h-16 text-blue-500 mx-auto" aria-hidden="true" />
-            <p className="text-center">Stay hydrated for optimal kidney health and overall well-being!</p>
-          </div>
-        );
-      case 'nutrients':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Daily Nutrient Intake</h2>
-            <Apple className="w-16 h-16 text-green-500 mx-auto" aria-hidden="true" />
-            <p>Balanced nutrition is key to a healthy life. Calculate your personalized nutrient needs based on your BMR and activity level.</p>
-          </div>
-        );
-      case 'kidney':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Kidney Health Education</h2>
-            <Heart className="w-16 h-16 text-red-500 mx-auto" aria-hidden="true" />
-            <p>Learn about kidney failure, its symptoms, prevention, and complications. Protect your kidneys for a healthier life!</p>
-          </div>
-        );
-      default:
-        return null;
+  const calculateMacros = () => {
+    const proteinRatio = 0.25;
+    const fatRatio = 0.25;
+    const carbsRatio = 0.50;
+
+    const protein = Math.round(bmr * proteinRatio / 4);
+    const fat = Math.round(bmr * fatRatio / 9);
+    const carbs = Math.round(bmr * carbsRatio / 4);
+
+    setMacros({ protein, fat, carbs });
+  };
+
+  const activityLevelMultiplier = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    veryActive: 1.9,
+  };
+
+  const handleUserDataChange = (field, value) => {
+    setUserData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const handleNextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      calculateBmi();
+      calculateBmr();
+      calculateMacros();
+      setShowSummary(true);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <nav className="mb-8" aria-label="Main navigation">
-        <ul className="flex space-x-4 overflow-x-auto">
-          {['Home', 'BMI', 'Water', 'Nutrients', 'Kidney'].map((item) => (
-            <li key={item}>
-              <button
-                onClick={() => setActiveSection(item.toLowerCase())}
-                className={`px-4 py-2 rounded-full ${
-                  activeSection === item.toLowerCase()
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                } transition-colors`}
-                aria-current={activeSection === item.toLowerCase() ? 'page' : undefined}
-              >
-                {item}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <main className="bg-white shadow-lg rounded-lg p-6">
-        {renderSection()}
+    <div className="flex flex-col h-screen">
+      <header className="bg-gray-900 text-white py-4 px-6">
+        <h1 className="text-2xl font-bold">Health Dashboard Chatbot</h1>
+      </header>
+      <main className="flex-1 p-6">
+        {!showSummary ? (
+          <div className="space-y-6">
+            <ChatbotStep
+              title={steps[currentStep].title}
+              component={steps[currentStep].component}
+              onNext={handleNextStep}
+            />
+          </div>
+        ) : (
+          <HealthSummary
+            bmi={bmi}
+            bmr={bmr}
+            macros={macros}
+            userData={userData}
+          />
+        )}
       </main>
-      <footer className="mt-8 text-center text-gray-500">
-        <p>© 2024 Your Daily Health Guide. All rights reserved.</p>
-      </footer>
     </div>
   );
 };
 
-export default MedicalChatbot;
+const ChatbotStep = ({ title, component, onNext }) => {
+  return (
+    <Card>
+      <CardHeader>{title}</CardHeader>
+      <CardContent>
+        {component}
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+          onClick={onNext}
+        >
+          Next
+        </button>
+      </CardContent>
+    </Card>
+  );
+};
+
+const UserDataInput = ({ field, label, value, onChange }) => {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={field} className="block font-medium text-gray-700">
+        {label}
+      </label>
+      <input
+        type="text"
+        id={field}
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="border border-gray-300 rounded px-3 py-2 w-full"
+      />
+    </div>
+  );
+};
+
+const HealthSummary = ({ bmi, bmr, macros, userData }) => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>Body Mass Index (BMI)</CardHeader>
+        <CardContent>
+          <p>
+            Your BMI is <strong>{bmi}</strong>, which is considered{' '}
+            {getBmiCategory(bmi)}.
+          </p>
+          <p>
+            {getBmiDescription(bmi)}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>Basal Metabolic Rate (BMR) & Daily Calorie Needs</CardHeader>
+        <CardContent>
+          <p>
+            Your estimated BMR is <strong>{bmr} kcal/day</strong>. To maintain your
+            current weight, you should aim to consume approximately{' '}
+            <strong>{Math.round(bmr * activityLevelMultiplier[userData.activityLevel])} kcal/day</strong>.
+          </p>
+          <p>
+            Recommended macronutrient intake:
+            <ul>
+              <li>Protein: <strong>{macros.protein}g/day</strong></li>
+              <li>Fats: <strong>{macros.fat}g/day</strong></li>
+              <li>Carbohydrates: <strong>{macros.carbs}g/day</strong></li>
+            </ul>
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>Next Steps for a Healthy Life</CardHeader>
+        <CardContent>
+          <ul>
+            <li>Maintain a varied diet with the right mix of proteins, fats, and carbohydrates.</li>
+            <li>Aim for regular physical activity to boost metabolism and maintain weight.</li>
+            <li>Don't forget to stay hydrated—water is key for metabolism and kidney function.</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+const getBmiCategory = (bmi) => {
+  if (bmi < 18.5) {
+    return 'underweight';
+  } else if (bmi >= 18.5 && bmi < 25) {
+    return 'normal';
+  } else if (bmi >= 25 && bmi < 30) {
+    return 'overweight';
+  } else {
+    return 'obese';
+  }
+};
+
+const getBmiDescription = (bmi) => {
+  if (bmi < 18.5) {
+    return 'You may want to consider gaining a few pounds to reach a healthy weight range.';
+  } else if (bmi >= 18.5 && bmi < 25) {
+    return 'You are maintaining a healthy weight. Keep up the good work!';
+  } else if (bmi >= 25 && bmi < 30) {
+    return 'You are in the overweight range. Consider making some lifestyle changes to reach a healthy weight.';
+  } else {
+    return 'You are in the obese range. It's important to make changes to your diet and exercise routine to improve your health.';
+  }
+};
+
+export default HealthDashboardChatbot;
